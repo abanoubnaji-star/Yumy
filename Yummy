@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Are We Going to Eat? — yumara</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        yumara: {
+                            50: '#f6f8f2',
+                            100: '#e7efe0',
+                            200: '#d1e0c3',
+                            300: '#b0cb9b',
+                            400: '#8a9e6e',
+                            500: '#6c824e',
+                            600: '#4a5d33',
+                            700: '#3b4b27',
+                            800: '#2d381f',
+                            900: '#232d19',
+                        },
+                        cream: {
+                            50: '#faf9f5',
+                            100: '#f8f6f0',
+                            200: '#f3efe6',
+                            300: '#e8e2d4',
+                            400: '#d7cdb9',
+                            500: '#c2b39b',
+                        },
+                        forest: {
+                            800: '#2d3524',
+                            900: '#1b2216',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8f6f0;
+            color: #2d3524;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f3efe6; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d7cdb9; border-radius: 9999px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-yumara-600 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Header Navigation -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-cream-300 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between items-center h-16">
+                <!-- Yumara Logo & Title -->
+                <div class="flex items-center space-x-3 cursor-pointer select-none" onclick="app.goHome()">
+                    <div class="flex items-center gap-2 text-yumara-600">
+                        <svg class="h-8 w-auto fill-current" viewBox="0 0 320 100" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M 15 52 A 28 28 0 0 1 71 52 Z M 10 55 L 76 55 A 3 3 0 0 1 76 61 L 10 61 A 3 3 0 0 1 10 55 Z" />
+                            <path d="M 83 23 L 83 40 C 83 46 99 46 99 40 L 99 23 L 95 23 L 95 36 L 93 36 L 93 23 L 89 23 L 89 36 L 87 36 L 87 23 Z M 89 44 L 93 44 L 93 68 L 89 68 Z" />
+                            <path d="M 103 23 C 111 23 112 38 111 46 L 103 46 Z M 105 48 L 109 48 L 109 68 L 105 68 Z" />
+                            <circle cx="73" cy="69" r="3" />
+                            <circle cx="82" cy="74" r="2.5" />
+                            <circle cx="94" cy="71" r="2" />
+                            <circle cx="98" cy="76" r="2.5" />
+                            <text x="120" y="65" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="46" letter-spacing="-1">yumara</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="flex items-center space-x-2">
+                    <div id="sync-status-indicator" class="inline-flex items-center space-x-1.5 px-2.5 py-1 text-[11px] font-bold rounded-lg bg-cream-200 text-forest-800 border border-cream-300">
+                        <span id="sync-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span id="sync-status-text">Connecting Firestore...</span>
+                    </div>
+
+                    <button onclick="app.openHistoryModal()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-yumara-800 bg-cream-200 hover:bg-cream-300 rounded-lg transition-colors border border-cream-300">
+                        <i data-lucide="history" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Order History</span>
+                    </button>
+                    <button onclick="app.showCreateSessionModal()" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-yumara-600 hover:bg-yumara-700 rounded-lg shadow-sm transition-colors">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">New Group Order</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6">
+
+        <!-- VIEW 1: LANDING PAGE -->
+        <div id="view-landing" class="flex flex-col items-center justify-center py-6 max-w-4xl mx-auto space-y-8">
+            
+            <!-- Hero Header -->
+            <div class="text-center max-w-xl mx-auto space-y-3">
+                <div class="w-16 h-16 mx-auto bg-yumara-100 rounded-2xl flex items-center justify-center text-yumara-600 shadow-inner border border-yumara-200">
+                    <i data-lucide="utensils-crossed" class="w-8 h-8"></i>
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-forest-800 tracking-tight">What Are We Eating Today?</h2>
+                <p class="text-xs font-bold uppercase tracking-widest text-yumara-600">Egypt's Top Spots • Powered by Talabat &amp; elmenus Menus</p>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Real-time cloud sync across phones &amp; laptops. Split group orders, calculate delivery &amp; taxes in <strong>EGP (ج.م)</strong>, and track payments via InstaPay or Cash.
+                </p>
+            </div>
+
+            <!-- Quick Action Bar: Join or Create -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
+                <!-- Join with Code -->
+                <div class="bg-white p-4 rounded-2xl border border-cream-300 shadow-sm flex flex-col justify-between space-y-2">
+                    <label class="text-xs font-bold text-forest-800 uppercase tracking-wider">Have a Session Code?</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="join-code-input" maxlength="7" placeholder="e.g. YUM482" 
+                               class="code-font uppercase text-center text-base font-extrabold tracking-widest flex-1 px-3 py-2 rounded-xl border border-cream-300 bg-cream-50 text-forest-800 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600">
+                        <button onclick="app.joinByCode()" class="px-4 py-2 bg-forest-800 hover:bg-forest-900 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1 shadow-sm">
+                            <span>Join</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Order Button -->
+                <div class="bg-white p-4 rounded-2xl border border-cream-300 shadow-sm flex flex-col justify-between space-y-2">
+                    <label class="text-xs font-bold text-forest-800 uppercase tracking-wider">Ordering Somewhere Else?</label>
+                    <button onclick="app.showCreateSessionModal()" class="w-full py-2.5 bg-yumara-600 hover:bg-yumara-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-yumara-600/20 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Start Custom Group Order</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- RECOMMENDED RESTAURANTS DIRECTORY (Talabat & elmenus) -->
+            <div class="w-full space-y-4 pt-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-cream-300 pb-3">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-forest-800 flex items-center gap-2">
+                            <i data-lucide="flame" class="w-5 h-5 text-amber-500"></i>
+                            <span>Popular Restaurants in Egypt</span>
+                        </h3>
+                        <p class="text-xs text-slate-500">Select any spot to launch a group session pre-loaded with menu presets &amp; delivery fees</p>
+                    </div>
+
+                    <!-- Live Search Bar -->
+                    <div class="relative w-full sm:w-64">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                        <input type="text" id="restaurant-search-input" oninput="app.filterRestaurants()" placeholder="Search dish, spot, or area..." 
+                               class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-cream-300 bg-white text-forest-800 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600">
+                    </div>
+                </div>
+
+                <!-- Category Filter Pills -->
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar text-xs" id="category-pills">
+                    <button onclick="app.setCategoryFilter('all', this)" class="cat-pill active-pill px-3 py-1 rounded-full font-bold border border-yumara-600 bg-yumara-600 text-white transition-colors whitespace-nowrap">All</button>
+                    <button onclick="app.setCategoryFilter('traditional', this)" class="cat-pill px-3 py-1 rounded-full font-semibold border border-cream-300 bg-white text-forest-800 hover:bg-cream-100 transition-colors whitespace-nowrap">Traditional &amp; Grills</button>
+                    <button onclick="app.setCategoryFilter('koshary_street', this)" class="cat-pill px-3 py-1 rounded-full font-semibold border border-cream-300 bg-white text-forest-800 hover:bg-cream-100 transition-colors whitespace-nowrap">Koshary &amp; Street Food</button>
+                    <button onclick="app.setCategoryFilter('burgers_fast', this)" class="cat-pill px-3 py-1 rounded-full font-semibold border border-cream-300 bg-white text-forest-800 hover:bg-cream-100 transition-colors whitespace-nowrap">Burgers &amp; Fast Food</button>
+                    <button onclick="app.setCategoryFilter('shawarma', this)" class="cat-pill px-3 py-1 rounded-full font-semibold border border-cream-300 bg-white text-forest-800 hover:bg-cream-100 transition-colors whitespace-nowrap">Syrian Shawarma</button>
+                </div>
+
+                <!-- Dynamic Restaurant Grid -->
+                <div id="restaurants-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: UNIFIED COLLABORATIVE BOARD -->
+        <div id="view-session" class="hidden space-y-6">
+
+            <!-- Universal Session Banner -->
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-cream-300 shadow-sm relative overflow-hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <!-- 6-Char Session Code Badge -->
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-yumara-100 border border-yumara-300 text-yumara-900 text-xs font-bold">
+                                <span>CODE:</span>
+                                <span id="session-code-display" class="code-font text-sm font-extrabold tracking-wider">------</span>
+                                <button onclick="app.copySessionCode()" title="Copy Code" class="hover:text-yumara-700 ml-1">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+
+                            <span id="session-lock-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live &amp; Open
+                            </span>
+
+                            <button id="admin-mode-toggle-btn" onclick="app.toggleAdminMode()" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-cream-200 hover:bg-cream-300 text-forest-800 border border-cream-300 flex items-center gap-1 transition-colors">
+                                <i data-lucide="shield" class="w-3.5 h-3.5 text-yumara-600"></i>
+                                <span id="admin-mode-toggle-text">Admin Settings</span>
+                            </button>
+                        </div>
+
+                        <h2 id="session-restaurant-name" class="text-2xl font-extrabold text-forest-800 tracking-tight pt-1">Restaurant Name</h2>
+                        <p id="session-organizer-info" class="text-xs text-slate-500">Organized by Organizer</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="app.copyUniversalShareLink()" class="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-bold text-white bg-yumara-600 hover:bg-yumara-700 rounded-xl shadow-sm transition-all">
+                            <i data-lucide="share-2" class="w-4 h-4"></i>
+                            <span>Copy Link</span>
+                        </button>
+                        <a id="session-menu-link-btn" href="#" target="_blank" rel="noopener" class="hidden inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-yumara-800 bg-yumara-50 hover:bg-yumara-100 rounded-xl border border-yumara-200">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            <span>Online Menu</span>
+                        </a>
+                        <button id="session-menu-img-btn" onclick="app.openMenuImageModal()" class="hidden inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-forest-800 bg-cream-200 hover:bg-cream-300 rounded-xl border border-cream-300">
+                            <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                            <span>Menu Photo</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid: Left = Add/Edit Form & Order Board, Right = Bill & Admin Controls -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Main Col (col-span-7) -->
+                <div class="lg:col-span-7 space-y-6">
+
+                    <!-- QUICK ORDER INPUT FORM -->
+                    <div class="bg-white rounded-2xl p-5 border border-cream-300 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-cream-200 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="utensils" class="w-4 h-4 text-yumara-600"></i>
+                                <h3 id="order-form-header-title" class="font-bold text-forest-800 text-sm sm:text-base">Add or Update Your Order</h3>
+                            </div>
+                            <span id="order-form-badge" class="hidden px-2 py-0.5 rounded text-[11px] font-bold bg-yumara-100 text-yumara-800 border border-yumara-200">
+                                Editing Existing
+                            </span>
+                        </div>
+
+                        <!-- 1. Name & Payment Method -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-forest-800 uppercase tracking-wider mb-1">Your Name *</label>
+                                <input type="text" id="order-input-name" placeholder="e.g. Ahmed, Sarah..." oninput="app.handleNameInputCheck()" 
+                                       class="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-cream-300 bg-cream-50 font-semibold text-forest-800 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-forest-800 uppercase tracking-wider mb-1">Payment Method *</label>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <button type="button" id="pay-choice-instapay" onclick="app.setOrderPaymentMethod('InstaPay')" class="py-2 px-2 text-xs font-bold rounded-xl border border-yumara-600 bg-yumara-50 text-yumara-800 flex items-center justify-center space-x-1">
+                                        <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+                                        <span>InstaPay</span>
+                                    </button>
+                                    <button type="button" id="pay-choice-cash" onclick="app.setOrderPaymentMethod('Cash')" class="py-2 px-2 text-xs font-bold rounded-xl border border-cream-300 bg-cream-100 text-forest-800 flex items-center justify-center space-x-1">
+                                        <i data-lucide="banknote" class="w-3.5 h-3.5"></i>
+                                        <span>Cash</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Menu Quick Presets -->
+                        <div id="board-presets-wrapper" class="hidden space-y-1.5 pt-1">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Quick Presets</label>
+                            <div id="board-presets-list" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+
+                        <!-- 2. Items List -->
+                        <div class="space-y-2 pt-2 border-t border-cream-200">
+                            <label class="block text-xs font-bold text-forest-800 uppercase tracking-wider">Food Items &amp; Prices (EGP)</label>
+                            <div id="board-items-inputs" class="space-y-2"></div>
+
+                            <button type="button" onclick="app.addBoardItemRow()" class="w-full py-2 px-3 border border-dashed border-yumara-300 hover:border-yumara-600 hover:bg-yumara-50 text-yumara-700 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-all">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Add Another Item</span>
+                            </button>
+                        </div>
+
+                        <!-- 3. Notes -->
+                        <div>
+                            <input type="text" id="order-input-note" placeholder="Special note (e.g. no onions, extra spicy)..." class="w-full text-xs px-3 py-2 rounded-xl border border-cream-300 bg-cream-50 font-medium text-forest-800 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600">
+                        </div>
+
+                        <!-- Submit Order Button -->
+                        <div class="flex gap-2 pt-1">
+                            <button id="btn-submit-order" onclick="app.submitColleagueOrder()" class="flex-1 py-2.5 bg-yumara-600 hover:bg-yumara-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-yumara-600/20 transition-all flex items-center justify-center space-x-2">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                <span id="btn-submit-order-text">Add My Order to Board</span>
+                            </button>
+                            <button id="btn-cancel-edit" onclick="app.resetOrderForm()" class="hidden px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-cream-100 border border-cream-300 rounded-xl">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- UNIVERSAL SHARED ORDERS BOARD -->
+                    <div class="bg-white rounded-2xl p-5 border border-cream-300 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-cream-200 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="users" class="w-5 h-5 text-yumara-600"></i>
+                                <h3 class="font-bold text-forest-800 text-base">All Colleagues' Orders</h3>
+                            </div>
+                            <span id="board-participants-count" class="text-xs font-bold bg-cream-200 px-2.5 py-1 rounded-full text-forest-800 border border-cream-300">
+                                0 Orders
+                            </span>
+                        </div>
+
+                        <!-- Orders Stream -->
+                        <div id="board-orders-list" class="space-y-4 divide-y divide-cream-200"></div>
+                    </div>
+
+                </div>
+
+                <!-- Right Col: Calculations & Admin Panel (col-span-5) -->
+                <div class="lg:col-span-5 space-y-6">
+
+                    <!-- Grand Total Summary Card -->
+                    <div class="bg-forest-800 text-white rounded-2xl p-5 shadow-xl space-y-4 border border-forest-900">
+                        <div class="flex items-center justify-between border-b border-forest-900/60 pb-3">
+                            <h3 class="font-bold text-base text-yumara-300">Total Group Bill</h3>
+                            <span class="text-xs bg-forest-900 text-yumara-200 px-2.5 py-0.5 rounded-full font-semibold">EGP / ج.م</span>
+                        </div>
+
+                        <div class="space-y-2 text-xs text-cream-200">
+                            <div class="flex justify-between">
+                                <span>Food Subtotal:</span>
+                                <span id="summary-subtotal" class="font-bold text-white">0.00 EGP</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Delivery Fee:</span>
+                                <span id="summary-delivery" class="font-bold text-white">0.00 EGP</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Taxes / Service:</span>
+                                <span id="summary-tax" class="font-bold text-white">0.00 EGP</span>
+                            </div>
+                            <div class="pt-2 border-t border-forest-900/60 flex justify-between items-baseline text-sm">
+                                <span class="font-bold text-white">Grand Total:</span>
+                                <span id="summary-grandtotal" class="text-xl font-extrabold text-yumara-300">0.00 EGP</span>
+                            </div>
+                        </div>
+
+                        <div class="text-[11px] text-yumara-200 bg-forest-900/60 p-2.5 rounded-xl border border-forest-900">
+                            <p id="summary-split-explanation">Delivery &amp; taxes are split equally among all members.</p>
+                        </div>
+                    </div>
+
+                    <!-- ADMIN CONTROLS PANEL -->
+                    <div id="admin-panel" class="bg-white rounded-2xl p-5 border border-cream-300 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-cream-200 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="sliders" class="w-4 h-4 text-yumara-600"></i>
+                                <h3 class="font-bold text-forest-800 text-sm">Admin &amp; Splitting Settings</h3>
+                            </div>
+                            <button id="admin-lock-btn" onclick="app.toggleLockSession()" class="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs font-bold text-forest-800 bg-cream-200 hover:bg-cream-300 rounded-lg border border-cream-300">
+                                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                                <span id="admin-lock-btn-text">Lock Orders</span>
+                            </button>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-forest-800 mb-1">Delivery Fee (EGP)</label>
+                                <input type="number" id="admin-input-delivery" min="0" step="0.5" placeholder="0.00" oninput="app.updateAdminFees()" class="w-full text-xs px-3 py-2 rounded-xl border border-cream-300 bg-cream-50 font-semibold text-forest-800 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-forest-800 mb-1">Tax / Service Charge Type</label>
+                                <div class="grid grid-cols-2 gap-1.5 mb-1.5">
+                                    <button type="button" id="tax-type-fixed" onclick="app.setTaxType('fixed')" class="py-1.5 text-xs font-bold rounded-lg border border-yumara-600 bg-yumara-50 text-yumara-700">Fixed (EGP)</button>
+                                    <button type="button" id="tax-type-percent" onclick="app.setTaxType('percent')" class="py-1.5 text-xs font-bold rounded-lg border border-cream-300 bg-cream-100 text-forest-800">Percentage (%)</button>
+                                </div>
+                                <input type="number" id="admin-input-tax" min="0" step="0.1" placeholder="0" oninput="app.updateAdminFees()" class="w-full text-xs px-3 py-2 rounded-xl border border-cream-300 bg-cream-50 font-semibold text-forest-800 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-forest-800 mb-1">Fee Splitting Mode</label>
+                                <select id="admin-select-split" onchange="app.updateAdminFees()" class="w-full text-xs px-3 py-2 rounded-xl border border-cream-300 bg-cream-50 font-semibold text-forest-800 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600">
+                                    <option value="equal">Equal Split (Divided per person)</option>
+                                    <option value="proportional">Proportional (Based on food subtotal)</option>
+                                </select>
+                            </div>
+
+                            <div class="pt-2">
+                                <button onclick="app.openAdminMenuModal()" class="w-full py-2 bg-cream-200 hover:bg-cream-300 text-forest-800 font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 border border-cream-300">
+                                    <i data-lucide="list-plus" class="w-3.5 h-3.5"></i>
+                                    <span>Manage Preset Menu Items</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- MODAL: CREATE SESSION -->
+    <div id="modal-create-session" class="fixed inset-0 bg-forest-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-cream-300 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b border-cream-200 pb-3">
+                <h3 class="font-extrabold text-forest-800 text-lg">Start New Group Order</h3>
+                <button onclick="app.closeModal('modal-create-session')" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="create-session-form" onsubmit="app.handleCreateSession(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-forest-800 uppercase tracking-wider mb-1">Restaurant Name *</label>
+                    <input type="text" id="create-restaurant-name" required placeholder="e.g. Zooba, Kebdet El Prince, McDonald's..." class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600 font-medium text-forest-800">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-forest-800 uppercase tracking-wider mb-1">Organizer Name *</label>
+                    <input type="text" id="create-admin-name" required placeholder="Your name (e.g. Mostafa)" class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600 font-medium text-forest-800">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-forest-800 uppercase tracking-wider mb-1">Menu Web Link (Optional)</label>
+                    <input type="url" id="create-menu-url" placeholder="https://elmenus.com/... or https://talabat.com/..." class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-cream-300 bg-cream-50 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600 font-medium text-forest-800">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-forest-800 uppercase tracking-wider mb-1">Delivery Fee (EGP)</label>
+                        <input type="number" id="create-delivery-fee" min="0" step="0.5" placeholder="0" class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-cream-300 bg-cream-50 font-medium text-forest-800">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-forest-800 uppercase tracking-wider mb-1">Tax/Service (EGP)</label>
+                        <input type="number" id="create-service-fee" min="0" step="0.5" placeholder="0" class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-cream-300 bg-cream-50 font-medium text-forest-800">
+                    </div>
+                </div>
+
+                <div class="pt-3 flex justify-end space-x-2">
+                    <button type="button" onclick="app.closeModal('modal-create-session')" class="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-cream-100 rounded-xl">Cancel</button>
+                    <button type="submit" id="btn-submit-create" class="px-5 py-2.5 text-xs font-bold text-white bg-yumara-600 hover:bg-yumara-700 rounded-xl shadow-md shadow-yumara-600/20 flex items-center space-x-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Create Live Session</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADMIN MENU PRESETS -->
+    <div id="modal-admin-menu" class="fixed inset-0 bg-forest-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-cream-300 space-y-4">
+            <div class="flex justify-between items-center border-b border-cream-200 pb-3">
+                <h3 class="font-extrabold text-forest-800 text-lg">Manage Preset Menu Items</h3>
+                <button onclick="app.closeModal('modal-admin-menu')" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500">Paste menu items line-by-line (e.g. <code>Burger - 120</code> or <code>Koshary Box - 45</code>).</p>
+            <textarea id="quick-preset-paste" rows="5" placeholder="Koshary Large - 50&#10;Liver Sandwich - 35&#10;Pepsi Can - 15" class="w-full text-xs font-mono p-3 rounded-xl border border-cream-300 bg-cream-50 focus:outline-none focus:ring-2 focus:ring-yumara-500/20 focus:border-yumara-600 text-forest-800"></textarea>
+            <div class="flex justify-between items-center pt-2">
+                <button type="button" onclick="app.parseAndAddPresets()" class="px-4 py-2 bg-yumara-700 hover:bg-yumara-800 text-white font-bold text-xs rounded-xl">
+                    Save Presets
+                </button>
+                <button type="button" onclick="app.clearPresets()" class="px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 rounded-xl">
+                    Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ORDER HISTORY ARCHIVE -->
+    <div id="modal-history" class="fixed inset-0 bg-forest-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-cream-300 space-y-4 max-h-[85vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b border-cream-200 pb-3">
+                <h3 class="font-extrabold text-forest-800 text-lg">Order History Archive</h3>
+                <div class="flex items-center space-x-2">
+                    <button onclick="app.promptClearAllHistory()" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-lg flex items-center space-x-1">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        <span>Clear History</span>
+                    </button>
+                    <button onclick="app.closeModal('modal-history')" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="history-sessions-list" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: MENU IMAGE VIEWER -->
+    <div id="modal-menu-image" class="fixed inset-0 bg-forest-900/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="relative max-w-4xl w-full bg-forest-900 rounded-2xl overflow-hidden shadow-2xl flex flex-col items-center border border-forest-800">
+            <button onclick="app.closeModal('modal-menu-image')" class="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 hover:bg-black text-white rounded-full flex items-center justify-center">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="p-2 max-h-[85vh] overflow-auto flex items-center justify-center">
+                <img id="modal-menu-img-element" src="" alt="Restaurant Menu" class="max-w-full h-auto rounded-lg object-contain">
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CUSTOM CONFIRMATION MODAL -->
+    <div id="modal-custom-confirm" class="fixed inset-0 bg-forest-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-cream-300 space-y-4">
+            <div class="flex items-center space-x-3 text-forest-800">
+                <i data-lucide="help-circle" class="w-6 h-6 text-yumara-600"></i>
+                <h4 id="custom-confirm-title" class="font-extrabold text-base">Confirm Action</h4>
+            </div>
+            <p id="custom-confirm-message" class="text-xs text-slate-600 leading-relaxed">Are you sure you want to proceed?</p>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button type="button" id="custom-confirm-cancel-btn" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-cream-100 rounded-xl">Cancel</button>
+                <button type="button" id="custom-confirm-accept-btn" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Imports & Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_AIxDvI_BCGJpwbec5iKDHp-rLIv1jGY",
+            authDomain: "yuma-b8b10.firebaseapp.com",
+            projectId: "yuma-b8b10",
+            storageBucket: "yuma-b8b10.firebasestorage.app",
+            messagingSenderId: "442514211341",
+            appId: "1:442514211341:web:33b789eec74e8ba3830b44"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
+
+        class FoodOrderApp {
+            constructor() {
+                this.sessionCode = null;
+                this.selectedPaymentMethod = 'InstaPay';
+                this.currentEditingParticipantId = null;
+                this.firestoreUnsubscribe = null;
+                this.user = null;
+                this.pendingPresets = null;
+
+                // Restaurant Search & Filtering State
+                this.activeCategory = 'all';
+                this.searchQuery = '';
+
+                // Curated Egyptian Restaurants (talabat & elmenus)
+                this.egyptianSpots = [
+                    {
+                        id: 'kebdet_elprince',
+                        name: 'Kebdet El Prince (كبدة البرنس)',
+                        category: 'traditional',
+                        area: 'Imbaba / Sheikh Zayed',
+                        rating: 4.8,
+                        deliveryTime: '30-45 min',
+                        estDeliveryFee: 35,
+                        priceTier: '$$',
+                        tags: ['Liver', 'Molokhia', 'Hawawshi', 'Sojok'],
+                        elmenusUrl: 'https://www.elmenus.com/cairo/restaurants/kebdet-el-prince-8663',
+                        talabatUrl: 'https://www.talabat.com/egypt/kebdet-el-prince',
+                        popularPresets: [
+                            { name: 'Alexandrian Liver Plate (كبدة إسكندراني)', price: 155 },
+                            { name: 'Molokhia Casserole with Meat (طاجن ملوخية باللحمة)', price: 165 },
+                            { name: 'Baladi Hawawshi (حواوشي بلدي)', price: 95 },
+                            { name: 'Sojok Casserole (طاجن سجق بلدي)', price: 150 }
+                        ]
+                    },
+                    {
+                        id: 'koshary_abou_tarek',
+                        name: 'Koshary Abou Tarek (أبو طارق)',
+                        category: 'koshary_street',
+                        area: 'Downtown / Mohandessin',
+                        rating: 4.7,
+                        deliveryTime: '20-35 min',
+                        estDeliveryFee: 25,
+                        priceTier: '$',
+                        tags: ['Koshary', 'Rice Pudding', 'Daqa & Salsa'],
+                        elmenusUrl: 'https://www.elmenus.com/cairo/restaurants/koshary-abou-tarek-561',
+                        talabatUrl: 'https://www.talabat.com/egypt/koshary-abou-tarek',
+                        popularPresets: [
+                            { name: 'Abou Tarek Special Bowl (كشري مخصوص)', price: 65 },
+                            { name: 'Koshary Mega (كشري ميجا)', price: 85 },
+                            { name: 'Rice Pudding with Cream (أرز باللبن بالقشطة)', price: 35 },
+                            { name: 'Extra Daqa & Fried Onions', price: 15 }
+                        ]
+                    },
+                    {
+                        id: 'semsoma',
+                        name: 'Semsoma (سمسمة)',
+                        category: 'shawarma',
+                        area: 'Dokki / Heliopolis',
+                        rating: 4.6,
+                        deliveryTime: '25-40 min',
+                        estDeliveryFee: 25,
+                        priceTier: '$',
+                        tags: ['Egyptian Beef Shawarma', 'Kaiser Roll', 'Tahina'],
+                        elmenusUrl: 'https://www.elmenus.com/cairo/restaurants/semsoma-124',
+                        talabatUrl: 'https://www.talabat.com/egypt/semsoma',
+                        popularPresets: [
+                            { name: 'Semsoma Beef Shawarma Large (شاورما لحمة كبير)', price: 85 },
+                            { name: 'Chicken Shawarma with Garlic (شاورما فراخ تومية)', price: 75 },
+                            { name: 'French Fries Bag', price: 30 }
+                        ]
+                    },
+                    {
+                        id: 'buffalo_burger',
+                        name: 'Buffalo Burger (بافلو برجر)',
+                        category: 'burgers_fast',
+                        area: 'Cairo / Giza / Alex',
+                        rating: 4.5,
+                        deliveryTime: '35-50 min',
+                        estDeliveryFee: 30,
+                        priceTier: '$$',
+                        tags: ['Smoked Cheese', 'Beef Burgers', 'Curly Fries'],
+                        elmenusUrl: 'https://www.elmenus.com/cairo/restaurants/buffalo-burger-143',
+                        talabatUrl: 'https://www.talabat.com/egypt/buffalo-burger',
+                        popularPresets: [
+                            { name: 'Shiitake Mushroom 200g Combo', price: 195 },
+                            { name: 'Bacon Mushroom Jack 200g Combo', price: 215 },
+                            { name: 'Curly Fries Upgrade', price: 45 }
+                        ]
+                    },
+                    {
+                        id: 'abou_ammar_el_soury',
+                        name: 'Abou Ammar El Soury (أبو عمار السوري)',
+                        category: 'shawarma',
+                        area: 'Nasr City / Mohandessin',
+                        rating: 4.6,
+                        deliveryTime: '25-40 min',
+                        estDeliveryFee: 25,
+                        priceTier: '$',
+                        tags: ['Syrian Shawarma', 'Fatta Shawarma', 'Toum'],
+                        elmenusUrl: 'https://www.elmenus.com/cairo/restaurants/abo-ammar-el-soury-102',
+                        talabatUrl: 'https://www.talabat.com/egypt/abo-ammar-el-soury',
+                        popularPresets: [
+                            { name: 'Syrian Chicken Shawarma French Bread', price: 90 },
+                            { name: 'Shawarma Mix Fatta Plate (فتة مكس شاورما)', price: 160 },
+                            { name: 'Extra Toum & Pickles', price: 20 }
+                        ]
+                    },
+                    {
+                        id: 'zooba',
+                        name: 'Zooba (زوبا)',
+                        category: 'traditional',
+                        area: 'Zamalek / Tagamoa / Maadi',
+                        rating: 4.7,
+                        deliveryTime: '30-45 min',
+                        estDeliveryFee: 35,
+                        priceTier: '$$',
+                        tags: ['Gourmet Taameya', 'Hawawshi', 'Koshary', 'Foul'],
+                        elmenusUrl: 'https://www.elmenus.com/cairo/restaurants/zooba-352',
+                        talabatUrl: 'https://www.talabat.com/egypt/zooba',
+                        popularPresets: [
+                            { name: 'Spicy Lemon Taameya Sandwich', price: 45 },
+                            { name: 'Beef Hawawshi with Beetroot Pickles', price: 120 },
+                            { name: 'Signature Whole Grain Koshary Bowl', price: 80 }
+                        ]
+                    }
+                ];
+
+                this.sessionData = {
+                    sessionCode: '',
+                    restaurantName: '',
+                    adminName: '',
+                    menuUrl: '',
+                    menuImage: null,
+                    deliveryFee: 0,
+                    serviceFee: 0,
+                    taxType: 'fixed',
+                    splitMethod: 'equal',
+                    isLocked: false,
+                    createdAt: null,
+                    presets: [],
+                    participants: []
+                };
+
+                this.initAuth();
+                window.addEventListener('hashchange', () => this.handleRouting());
+                
+                document.addEventListener('DOMContentLoaded', () => {
+                    this.renderRestaurantsList();
+                    lucide.createIcons();
+                    this.handleRouting();
+                });
+            }
+
+            async initAuth() {
+                try {
+                    const userCredential = await signInAnonymously(auth);
+                    this.user = userCredential.user;
+                    this.updateSyncBadge('Connected: Firestore Live', 'bg-emerald-500');
+                    if (this.sessionCode && !this.firestoreUnsubscribe) {
+                        this.bindFirestoreListener(this.sessionCode);
+                    }
+                } catch (e) {
+                    console.error("Firebase auth error:", e);
+                    this.updateSyncBadge('Sync Offline', 'bg-rose-500');
+                }
+            }
+
+            updateSyncBadge(text, dotColorClass) {
+                const syncStatusText = document.getElementById('sync-status-text');
+                const syncDot = document.getElementById('sync-dot');
+                if (syncStatusText) syncStatusText.innerText = text;
+                if (syncDot) syncDot.className = `w-2 h-2 rounded-full ${dotColorClass} animate-pulse`;
+            }
+
+            getFirestoreSessionDoc(code) {
+                return doc(db, 'food_orders_sessions', code.toUpperCase());
+            }
+
+            bindFirestoreListener(code) {
+                if (this.firestoreUnsubscribe) {
+                    this.firestoreUnsubscribe();
+                    this.firestoreUnsubscribe = null;
+                }
+
+                if (!this.user) return;
+
+                const docRef = this.getFirestoreSessionDoc(code);
+                this.firestoreUnsubscribe = onSnapshot(docRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const remoteData = docSnap.data();
+                        this.sessionData = remoteData;
+                        this.saveSessionToLocalArchive(false);
+                        this.renderSessionBoard();
+                        this.updateSyncBadge('Connected: Firestore Live', 'bg-emerald-500');
+                    } else {
+                        const localData = this.getLocalSession(code);
+                        if (localData) {
+                            this.sessionData = localData;
+                            this.saveSessionDataToFirestore();
+                        } else {
+                            this.showToast(`Session ${code} not found on cloud`, 'info');
+                        }
+                    }
+                }, (error) => {
+                    console.error("Firestore listen error:", error);
+                    this.updateSyncBadge('Reconnecting Firestore...', 'bg-amber-500');
+                });
+            }
+
+            async saveSessionDataToFirestore() {
+                if (!this.sessionCode) return;
+                try {
+                    const docRef = this.getFirestoreSessionDoc(this.sessionCode);
+                    await setDoc(docRef, this.sessionData, { merge: true });
+                } catch (err) {
+                    console.error("Error writing session to Firestore:", err);
+                    this.showToast('Failed to sync changes with cloud database', 'error');
+                }
+            }
+
+            generateShortCode() {
+                const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+                let code = '';
+                for (let i = 0; i < 6; i++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return code;
+            }
+
+            getUniversalShareURL() {
+                return `${window.location.origin}${window.location.pathname}#session=${this.sessionCode}`;
+            }
+
+            copyUniversalShareLink() {
+                const url = this.getUniversalShareURL();
+                this.fallbackCopyText(url);
+                this.showToast('Copied universal link! Send to your group.', 'success');
+            }
+
+            copySessionCode() {
+                if (this.sessionCode) {
+                    this.fallbackCopyText(this.sessionCode);
+                    this.showToast(`Copied code: ${this.sessionCode}`, 'success');
+                }
+            }
+
+            joinByCode() {
+                const input = document.getElementById('join-code-input').value.trim().toUpperCase();
+                if (!input || input.length < 3) {
+                    this.showToast('Please enter a valid session code', 'error');
+                    return;
+                }
+                window.location.hash = `#session=${input}`;
+            }
+
+            setCategoryFilter(category, btnElement) {
+                this.activeCategory = category;
+                document.querySelectorAll('#category-pills button').forEach(btn => {
+                    btn.className = 'cat-pill px-3 py-1 rounded-full font-semibold border border-cream-300 bg-white text-forest-800 hover:bg-cream-100 transition-colors whitespace-nowrap';
+                });
+                if (btnElement) {
+                    btnElement.className = 'cat-pill px-3 py-1 rounded-full font-bold border border-yumara-600 bg-yumara-600 text-white transition-colors whitespace-nowrap';
+                }
+                this.renderRestaurantsList();
+            }
+
+            filterRestaurants() {
+                this.searchQuery = document.getElementById('restaurant-search-input').value.toLowerCase().trim();
+                this.renderRestaurantsList();
+            }
+
+            renderRestaurantsList() {
+                const grid = document.getElementById('restaurants-grid');
+                if (!grid) return;
+
+                const filtered = this.egyptianSpots.filter(spot => {
+                    const matchesCategory = (this.activeCategory === 'all' || spot.category === this.activeCategory);
+                    const matchesSearch = !this.searchQuery || 
+                        spot.name.toLowerCase().includes(this.searchQuery) ||
+                        spot.area.toLowerCase().includes(this.searchQuery) ||
+                        spot.tags.some(t => t.toLowerCase().includes(this.searchQuery));
+                    return matchesCategory && matchesSearch;
+                });
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-span-full py-8 text-center bg-white rounded-2xl border border-cream-300 p-6 space-y-2">
+                            <i data-lucide="frown" class="w-8 h-8 text-slate-400 mx-auto"></i>
+                            <p class="text-sm font-bold text-forest-800">No restaurants match "${this.escapeHtml(this.searchQuery)}"</p>
+                            <p class="text-xs text-slate-500">Try searching for "liver", "shawarma", or "Dokki", or start a custom order above.</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+
+                grid.innerHTML = filtered.map(spot => `
+                    <div class="bg-white rounded-2xl border border-cream-300 p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-3 group hover:border-yumara-400">
+                        <div>
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <h4 class="font-extrabold text-sm text-forest-800 group-hover:text-yumara-700 transition-colors">${this.escapeHtml(spot.name)}</h4>
+                                    <p class="text-[11px] text-slate-500 font-medium">${spot.area}</p>
+                                </div>
+                                <span class="inline-flex items-center gap-1 text-[11px] font-extrabold bg-amber-50 text-amber-800 px-2 py-0.5 rounded-lg border border-amber-200">
+                                    <i data-lucide="star" class="w-3 h-3 fill-amber-500 text-amber-500"></i>
+                                    ${spot.rating}
+                                </span>
+                            </div>
+
+                            <div class="flex flex-wrap gap-1 mt-2.5">
+                                ${spot.tags.map(t => `
+                                    <span class="text-[10px] font-semibold bg-cream-100 text-forest-800 px-2 py-0.5 rounded-md border border-cream-200">${t}</span>
+                                `).join('')}
+                            </div>
+
+                            <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium mt-3 pt-2.5 border-t border-cream-200">
+                                <span class="flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
+                                    ${spot.deliveryTime}
+                                </span>
+                                <span class="font-bold text-forest-800">~${spot.estDeliveryFee} EGP Deliv.</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 pt-1">
+                            <button onclick="app.startPreFilledSession('${spot.id}')" class="w-full py-2 bg-yumara-600 hover:bg-yumara-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5">
+                                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                                <span>Order Here with Group</span>
+                            </button>
+
+                            <div class="grid grid-cols-2 gap-1.5 text-[10px]">
+                                <a href="${spot.elmenusUrl}" target="_blank" rel="noopener" class="py-1 px-2 rounded-lg bg-cream-100 hover:bg-cream-200 text-slate-700 font-bold border border-cream-300 flex items-center justify-center gap-1 transition-colors">
+                                    <i data-lucide="external-link" class="w-3 h-3 text-rose-500"></i>
+                                    <span>elmenus</span>
+                                </a>
+                                <a href="${spot.talabatUrl}" target="_blank" rel="noopener" class="py-1 px-2 rounded-lg bg-cream-100 hover:bg-cream-200 text-slate-700 font-bold border border-cream-300 flex items-center justify-center gap-1 transition-colors">
+                                    <i data-lucide="external-link" class="w-3 h-3 text-amber-600"></i>
+                                    <span>Talabat</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                lucide.createIcons();
+            }
+
+            startPreFilledSession(spotId) {
+                const spot = this.egyptianSpots.find(s => s.id === spotId);
+                if (!spot) return;
+
+                document.getElementById('create-restaurant-name').value = spot.name;
+                document.getElementById('create-delivery-fee').value = spot.estDeliveryFee;
+                document.getElementById('create-menu-url').value = spot.elmenusUrl;
+
+                this.pendingPresets = spot.popularPresets.map(p => ({
+                    id: 'p_' + Math.random().toString(36).substring(2, 6),
+                    name: p.name,
+                    price: p.price
+                }));
+
+                this.showCreateSessionModal();
+            }
+
+            async handleCreateSession(event) {
+                if (event) event.preventDefault();
+                
+                const submitBtn = document.getElementById('btn-submit-create');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = 'Creating Session...';
+                }
+
+                try {
+                    const restName = document.getElementById('create-restaurant-name').value.trim();
+                    const adminName = document.getElementById('create-admin-name').value.trim();
+                    const menuUrl = document.getElementById('create-menu-url').value.trim();
+                    const deliveryFee = parseFloat(document.getElementById('create-delivery-fee').value) || 0;
+                    const serviceFee = parseFloat(document.getElementById('create-service-fee').value) || 0;
+
+                    this.sessionCode = this.generateShortCode();
+
+                    this.sessionData = {
+                        sessionCode: this.sessionCode,
+                        restaurantName: restName,
+                        adminName: adminName,
+                        menuUrl: menuUrl,
+                        menuImage: null,
+                        deliveryFee: deliveryFee,
+                        serviceFee: serviceFee,
+                        taxType: 'fixed',
+                        splitMethod: 'equal',
+                        isLocked: false,
+                        createdAt: new Date().toISOString(),
+                        presets: this.pendingPresets && this.pendingPresets.length > 0 ? this.pendingPresets : [],
+                        participants: []
+                    };
+
+                    this.pendingPresets = null;
+
+                    this.saveSessionToLocalArchive(true);
+                    await this.saveSessionDataToFirestore();
+
+                    this.closeModal('modal-create-session');
+                    window.location.hash = `#session=${this.sessionCode}`;
+                    this.showToast(`Group order ${this.sessionCode} created!`, 'success');
+
+                } catch (err) {
+                    console.error('Session creation error:', err);
+                    this.showToast('Failed to create session. Please try again.', 'error');
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4"></i><span>Create Live Session</span>`;
+                        lucide.createIcons();
+                    }
+                }
+            }
+
+            getLocalSession(code) {
+                try {
+                    const localData = localStorage.getItem(`food_session_${code}`);
+                    return localData ? JSON.parse(localData) : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            saveSessionToLocalArchive(updateArchiveList = true) {
+                try {
+                    localStorage.setItem(`food_session_${this.sessionCode}`, JSON.stringify(this.sessionData));
+                    
+                    if (updateArchiveList) {
+                        const history = JSON.parse(localStorage.getItem('food_sessions_archive') || '[]');
+                        const existingIdx = history.findIndex(h => h.sessionCode === this.sessionCode || h.id === this.sessionCode);
+                        const historyEntry = { id: this.sessionCode, ...this.sessionData };
+
+                        if (existingIdx >= 0) {
+                            history[existingIdx] = historyEntry;
+                        } else {
+                            history.unshift(historyEntry);
+                        }
+
+                        localStorage.setItem('food_sessions_archive', JSON.stringify(history.slice(0, 30)));
+                    }
+                } catch (e) {}
+            }
+
+            loadSessionState(code) {
+                const localData = this.getLocalSession(code);
+                if (localData) {
+                    this.sessionData = localData;
+                }
+                this.bindFirestoreListener(code);
+            }
+
+            handleRouting() {
+                const hash = window.location.hash.substring(1);
+                const params = new URLSearchParams(hash);
+                const code = params.get('session');
+
+                if (code) {
+                    this.sessionCode = code.toUpperCase();
+                    this.loadSessionState(this.sessionCode);
+                    this.renderSessionBoard();
+                } else {
+                    if (this.firestoreUnsubscribe) {
+                        this.firestoreUnsubscribe();
+                        this.firestoreUnsubscribe = null;
+                    }
+                    this.showLandingView();
+                }
+            }
+
+            goHome() {
+                window.location.hash = '';
+                this.showLandingView();
+            }
+
+            showLandingView() {
+                document.getElementById('view-landing').classList.remove('hidden');
+                document.getElementById('view-session').classList.add('hidden');
+                this.renderRestaurantsList();
+            }
+
+            computeBreakdowns() {
+                const participants = this.sessionData.participants || [];
+                const count = participants.length;
+                const deliveryTotal = this.sessionData.deliveryFee || 0;
+                const splitMethod = this.sessionData.splitMethod || 'equal';
+                const taxType = this.sessionData.taxType || 'fixed';
+                const serviceVal = this.sessionData.serviceFee || 0;
+
+                let groupSubtotal = 0;
+                const listWithSubtotals = participants.map(p => {
+                    const subtotal = (p.items || []).reduce((s, item) => s + ((parseFloat(item.price) || 0) * (parseInt(item.qty) || 1)), 0);
+                    groupSubtotal += subtotal;
+                    return { ...p, subtotal };
+                });
+
+                let totalTaxEgp = 0;
+                if (taxType === 'percent') {
+                    totalTaxEgp = (groupSubtotal * serviceVal) / 100;
+                } else {
+                    totalTaxEgp = serviceVal;
+                }
+
+                const calculatedParticipants = listWithSubtotals.map(p => {
+                    let deliveryShare = 0;
+                    let taxShare = 0;
+
+                    if (splitMethod === 'proportional') {
+                        if (groupSubtotal > 0) {
+                            const ratio = p.subtotal / groupSubtotal;
+                            deliveryShare = ratio * deliveryTotal;
+                            taxShare = ratio * totalTaxEgp;
+                        } else {
+                            deliveryShare = count > 0 ? deliveryTotal / count : 0;
+                            taxShare = count > 0 ? totalTaxEgp / count : 0;
+                        }
+                    } else {
+                        deliveryShare = count > 0 ? deliveryTotal / count : 0;
+                        taxShare = count > 0 ? totalTaxEgp / count : 0;
+                    }
+
+                    const grandTotal = p.subtotal + deliveryShare + taxShare;
+                    return { ...p, deliveryShare, taxShare, grandTotal };
+                });
+
+                const grandTotalBill = groupSubtotal + deliveryTotal + totalTaxEgp;
+
+                return {
+                    groupSubtotal,
+                    deliveryTotal,
+                    totalTaxEgp,
+                    grandTotalBill,
+                    participants: calculatedParticipants,
+                    count
+                };
+            }
+
+            renderSessionBoard() {
+                document.getElementById('view-landing').classList.add('hidden');
+                document.getElementById('view-session').classList.remove('hidden');
+
+                document.getElementById('session-code-display').innerText = this.sessionCode;
+                document.getElementById('session-restaurant-name').innerText = this.sessionData.restaurantName || 'Restaurant Order';
+                document.getElementById('session-organizer-info').innerText = `Organized by ${this.sessionData.adminName || 'Organizer'}`;
+
+                const lockBadge = document.getElementById('session-lock-badge');
+                const lockBtnText = document.getElementById('admin-lock-btn-text');
+                const submitBtn = document.getElementById('btn-submit-order');
+
+                if (this.sessionData.isLocked) {
+                    lockBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> Locked`;
+                    lockBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1';
+                    lockBtnText.innerText = 'Unlock Orders';
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    lockBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live &amp; Open`;
+                    lockBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1';
+                    lockBtnText.innerText = 'Lock Orders';
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+
+                const linkBtn = document.getElementById('session-menu-link-btn');
+                if (this.sessionData.menuUrl) {
+                    linkBtn.href = this.sessionData.menuUrl;
+                    linkBtn.classList.remove('hidden');
+                } else {
+                    linkBtn.classList.add('hidden');
+                }
+
+                const imgBtn = document.getElementById('session-menu-img-btn');
+                if (this.sessionData.menuImage) {
+                    imgBtn.classList.remove('hidden');
+                } else {
+                    imgBtn.classList.add('hidden');
+                }
+
+                const delInput = document.getElementById('admin-input-delivery');
+                if (document.activeElement !== delInput) {
+                    delInput.value = this.sessionData.deliveryFee || '';
+                }
+                const taxInput = document.getElementById('admin-input-tax');
+                if (document.activeElement !== taxInput) {
+                    taxInput.value = this.sessionData.serviceFee || '';
+                }
+                document.getElementById('admin-select-split').value = this.sessionData.splitMethod || 'equal';
+                this.updateTaxTypeUI(this.sessionData.taxType || 'fixed');
+
+                this.renderPresets();
+                this.renderOrdersStream();
+
+                if (document.getElementById('board-items-inputs').children.length === 0) {
+                    this.addBoardItemRow();
+                }
+
+                lucide.createIcons();
+            }
+
+            renderPresets() {
+                const wrapper = document.getElementById('board-presets-wrapper');
+                const list = document.getElementById('board-presets-list');
+                const presets = this.sessionData.presets || [];
+
+                if (presets.length === 0) {
+                    wrapper.classList.add('hidden');
+                    return;
+                }
+
+                wrapper.classList.remove('hidden');
+                list.innerHTML = presets.map(p => `
+                    <button type="button" onclick="app.addBoardItemRow('${this.escapeHtml(p.name)}', ${p.price})" class="px-2.5 py-1 bg-cream-200 hover:bg-cream-300 text-forest-800 border border-cream-300 rounded-lg text-xs font-bold flex items-center space-x-1 transition-colors">
+                        <span>${this.escapeHtml(p.name)}</span>
+                        <span class="text-yumara-700 font-extrabold">(${p.price} EGP)</span>
+                        <i data-lucide="plus" class="w-3 h-3 text-yumara-600"></i>
+                    </button>
+                `).join('');
+                lucide.createIcons();
+            }
+
+            renderOrdersStream() {
+                const container = document.getElementById('board-orders-list');
+                const countBadge = document.getElementById('board-participants-count');
+                const breakdown = this.computeBreakdowns();
+
+                countBadge.innerText = `${breakdown.count} Order${breakdown.count === 1 ? '' : 's'}`;
+
+                document.getElementById('summary-subtotal').innerText = breakdown.groupSubtotal.toFixed(2) + ' EGP';
+                document.getElementById('summary-delivery').innerText = breakdown.deliveryTotal.toFixed(2) + ' EGP';
+                document.getElementById('summary-tax').innerText = breakdown.totalTaxEgp.toFixed(2) + ' EGP';
+                document.getElementById('summary-grandtotal').innerText = breakdown.grandTotalBill.toFixed(2) + ' EGP';
+
+                const splitDesc = this.sessionData.splitMethod === 'proportional'
+                    ? 'Delivery & taxes split proportionally based on food subtotal.'
+                    : 'Delivery & taxes split equally among all members.';
+                document.getElementById('summary-split-explanation').innerText = splitDesc;
+
+                if (breakdown.count === 0) {
+                    container.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">No orders submitted yet. Enter your name and items above to place the first order!</p>`;
+                    return;
+                }
+
+                container.innerHTML = breakdown.participants.map(p => `
+                    <div class="pt-3 first:pt-0 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-extrabold text-sm text-forest-800">${this.escapeHtml(p.name)}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.paymentMethod === 'Cash' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-blue-100 text-blue-800 border border-blue-200'}">
+                                    ${p.paymentMethod || 'InstaPay'}
+                                </span>
+                                <button onclick="app.togglePaymentStatus('${p.id}')" class="px-2 py-0.5 rounded text-[10px] font-bold transition-transform active:scale-95 ${p.isPaid ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-200'}">
+                                    ${p.isPaid ? 'PAID ✓' : 'UNPAID'}
+                                </button>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-extrabold text-sm text-yumara-700">${p.grandTotal.toFixed(2)} EGP</span>
+                                <p class="text-[10px] text-slate-400">Food: ${p.subtotal.toFixed(2)} | Deliv: ${p.deliveryShare.toFixed(2)} | Tax: ${p.taxShare.toFixed(2)}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-cream-50 rounded-xl p-2.5 text-xs space-y-1 border border-cream-200">
+                            ${p.items.map(i => `
+                                <div class="flex justify-between text-forest-800 font-medium">
+                                    <span>${i.qty}x ${this.escapeHtml(i.name)}</span>
+                                    <span>${(i.price * i.qty).toFixed(2)} EGP</span>
+                                </div>
+                            `).join('')}
+                            ${p.note ? `<p class="text-[11px] text-yumara-700 italic pt-1 border-t border-cream-300 mt-1">Note: ${this.escapeHtml(p.note)}</p>` : ''}
+                        </div>
+
+                        <div class="flex justify-end items-center space-x-2 text-[11px]">
+                            <button onclick="app.editParticipantOrder('${p.id}')" class="text-forest-800 hover:text-forest-900 font-bold inline-flex items-center space-x-1 bg-cream-200 px-2.5 py-1 rounded-md border border-cream-300">
+                                <i data-lucide="pencil" class="w-3 h-3"></i>
+                                <span>Edit This Order</span>
+                            </button>
+                            <button onclick="app.promptRemoveParticipant('${p.id}')" class="text-rose-600 hover:underline font-semibold flex items-center space-x-1">
+                                <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                <span>Remove</span>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                lucide.createIcons();
+            }
+
+            setOrderPaymentMethod(method) {
+                this.selectedPaymentMethod = method;
+                const instaBtn = document.getElementById('pay-choice-instapay');
+                const cashBtn = document.getElementById('pay-choice-cash');
+
+                if (method === 'Cash') {
+                    cashBtn.className = 'py-2 px-2 text-xs font-bold rounded-xl border border-yumara-600 bg-yumara-50 text-yumara-800 flex items-center justify-center space-x-1';
+                    instaBtn.className = 'py-2 px-2 text-xs font-bold rounded-xl border border-cream-300 bg-cream-100 text-forest-800 flex items-center justify-center space-x-1';
+                } else {
+                    instaBtn.className = 'py-2 px-2 text-xs font-bold rounded-xl border border-yumara-600 bg-yumara-50 text-yumara-800 flex items-center justify-center space-x-1';
+                    cashBtn.className = 'py-2 px-2 text-xs font-bold rounded-xl border border-cream-300 bg-cream-100 text-forest-800 flex items-center justify-center space-x-1';
+                }
+            }
+
+            addBoardItemRow(name = '', price = '', qty = 1) {
+                const container = document.getElementById('board-items-inputs');
+                const rowId = 'item_row_' + Math.random().toString(36).substring(2, 7);
+
+                const row = document.createElement('div');
+                row.id = rowId;
+                row.className = 'flex items-center space-x-2 bg-cream-50 p-2 rounded-xl border border-cream-300';
+                row.innerHTML = `
+                    <input type="text" placeholder="Food item name" value="${this.escapeHtml(name)}" class="item-name-input flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-cream-300 bg-white font-medium text-forest-800 focus:outline-none focus:ring-1 focus:ring-yumara-500">
+                    <input type="number" placeholder="Price" min="0" step="0.5" value="${price}" class="item-price-input w-20 text-xs px-2.5 py-1.5 rounded-lg border border-cream-300 bg-white font-bold text-forest-800 focus:outline-none focus:ring-1 focus:ring-yumara-500">
+                    <div class="flex items-center space-x-1">
+                        <span class="text-[10px] text-slate-400 font-bold">x</span>
+                        <input type="number" min="1" value="${qty}" class="item-qty-input w-12 text-xs px-2 py-1.5 rounded-lg border border-cream-300 bg-white text-center font-bold text-forest-800 focus:outline-none focus:ring-1 focus:ring-yumara-500">
+                    </div>
+                    <button type="button" onclick="app.removeBoardItemRow('${rowId}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+                lucide.createIcons();
+            }
+
+            removeBoardItemRow(rowId) {
+                const el = document.getElementById(rowId);
+                if (el) el.remove();
+            }
+
+            handleNameInputCheck() {
+                const name = document.getElementById('order-input-name').value.trim().toLowerCase();
+                const btnText = document.getElementById('btn-submit-order-text');
+                const formBadge = document.getElementById('order-form-badge');
+
+                if (!this.currentEditingParticipantId) {
+                    const match = (this.sessionData.participants || []).find(p => p.name.toLowerCase() === name);
+                    if (match && name.length > 0) {
+                        btnText.innerText = `Update ${match.name}'s Order`;
+                        formBadge.classList.remove('hidden');
+                        formBadge.innerText = 'Updating Existing';
+                    } else {
+                        btnText.innerText = 'Add My Order to Board';
+                        formBadge.classList.add('hidden');
+                    }
+                }
+            }
+
+            editParticipantOrder(participantId) {
+                const p = (this.sessionData.participants || []).find(item => item.id === participantId);
+                if (!p) return;
+
+                this.currentEditingParticipantId = p.id;
+                document.getElementById('order-input-name').value = p.name;
+                document.getElementById('order-input-note').value = p.note || '';
+                this.setOrderPaymentMethod(p.paymentMethod || 'InstaPay');
+
+                const container = document.getElementById('board-items-inputs');
+                container.innerHTML = '';
+                (p.items || []).forEach(i => {
+                    this.addBoardItemRow(i.name, i.price, i.qty);
+                });
+
+                document.getElementById('order-form-header-title').innerText = `Editing ${p.name}'s Order`;
+                document.getElementById('btn-submit-order-text').innerText = 'Save Changes';
+                document.getElementById('order-form-badge').classList.remove('hidden');
+                document.getElementById('order-form-badge').innerText = 'Editing';
+                document.getElementById('btn-cancel-edit').classList.remove('hidden');
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            resetOrderForm() {
+                this.currentEditingParticipantId = null;
+                document.getElementById('order-input-name').value = '';
+                document.getElementById('order-input-note').value = '';
+                this.setOrderPaymentMethod('InstaPay');
+
+                const container = document.getElementById('board-items-inputs');
+                container.innerHTML = '';
+                this.addBoardItemRow();
+
+                document.getElementById('order-form-header-title').innerText = 'Add or Update Your Order';
+                document.getElementById('btn-submit-order-text').innerText = 'Add My Order to Board';
+                document.getElementById('order-form-badge').classList.add('hidden');
+                document.getElementById('btn-cancel-edit').classList.add('hidden');
+            }
+
+            async submitColleagueOrder() {
+                if (this.sessionData.isLocked) {
+                    this.showToast('Orders are locked for this session', 'error');
+                    return;
+                }
+
+                const name = document.getElementById('order-input-name').value.trim();
+                const note = document.getElementById('order-input-note').value.trim();
+
+                if (!name) {
+                    this.showToast('Please enter your name', 'error');
+                    return;
+                }
+
+                const rows = document.querySelectorAll('#board-items-inputs > div');
+                const items = [];
+
+                rows.forEach(row => {
+                    const nameInput = row.querySelector('.item-name-input');
+                    const priceInput = row.querySelector('.item-price-input');
+                    const qtyInput = row.querySelector('.item-qty-input');
+
+                    if (nameInput && priceInput && qtyInput) {
+                        const itemName = nameInput.value.trim();
+                        const itemPrice = parseFloat(priceInput.value) || 0;
+                        const itemQty = parseInt(qtyInput.value) || 1;
+
+                        if (itemName && itemPrice >= 0) {
+                            items.push({ name: itemName, price: itemPrice, qty: itemQty });
+                        }
+                    }
+                });
+
+                if (items.length === 0) {
+                    this.showToast('Please enter at least one food item with a price', 'error');
+                    return;
+                }
+
+                const participants = [...(this.sessionData.participants || [])];
+
+                let targetIndex = -1;
+                if (this.currentEditingParticipantId) {
+                    targetIndex = participants.findIndex(p => p.id === this.currentEditingParticipantId);
+                } else {
+                    targetIndex = participants.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+                }
+
+                let savedParticipant = null;
+
+                if (targetIndex >= 0) {
+                    participants[targetIndex].name = name;
+                    participants[targetIndex].items = items;
+                    participants[targetIndex].paymentMethod = this.selectedPaymentMethod;
+                    participants[targetIndex].note = note;
+                    savedParticipant = participants[targetIndex];
+                    this.showToast(`Updated ${name}'s order!`, 'success');
+                } else {
+                    savedParticipant = {
+                        id: 'part_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5),
+                        name: name,
+                        items: items,
+                        paymentMethod: this.selectedPaymentMethod,
+                        note: note,
+                        isPaid: false
+                    };
+                    participants.push(savedParticipant);
+                    this.showToast(`Added ${name}'s order to the board!`, 'success');
+                }
+
+                this.sessionData.participants = participants;
+                this.saveSessionToLocalArchive(true);
+                await this.saveSessionDataToFirestore();
+
+                this.resetOrderForm();
+            }
+
+            async togglePaymentStatus(id) {
+                const participants = [...this.sessionData.participants];
+                const p = participants.find(item => item.id === id);
+                if (p) {
+                    p.isPaid = !p.isPaid;
+                    this.sessionData.participants = participants;
+                    this.saveSessionToLocalArchive(true);
+                    await this.saveSessionDataToFirestore();
+                }
+            }
+
+            promptRemoveParticipant(id) {
+                const p = (this.sessionData.participants || []).find(x => x.id === id);
+                const name = p ? p.name : 'this order';
+                this.showConfirmDialog(`Remove Order?`, `Are you sure you want to remove ${name}'s order from the session?`, async () => {
+                    this.sessionData.participants = this.sessionData.participants.filter(item => item.id !== id);
+                    this.saveSessionToLocalArchive(true);
+                    await this.saveSessionDataToFirestore();
+                    this.showToast('Order removed', 'info');
+                    if (this.currentEditingParticipantId === id) {
+                        this.resetOrderForm();
+                    }
+                });
+            }
+
+            toggleAdminMode() {
+                const panel = document.getElementById('admin-panel');
+                panel.classList.toggle('hidden');
+                const isHidden = panel.classList.contains('hidden');
+                document.getElementById('admin-mode-toggle-text').innerText = isHidden ? 'Show Admin' : 'Admin Settings';
+            }
+
+            setTaxType(type) {
+                this.sessionData.taxType = type;
+                this.updateTaxTypeUI(type);
+                this.updateAdminFees();
+            }
+
+            updateTaxTypeUI(type) {
+                const fixedBtn = document.getElementById('tax-type-fixed');
+                const percentBtn = document.getElementById('tax-type-percent');
+
+                if (type === 'percent') {
+                    percentBtn.className = 'py-1.5 text-xs font-bold rounded-lg border border-yumara-600 bg-yumara-50 text-yumara-700';
+                    fixedBtn.className = 'py-1.5 text-xs font-bold rounded-lg border border-cream-300 bg-cream-100 text-forest-800';
+                } else {
+                    fixedBtn.className = 'py-1.5 text-xs font-bold rounded-lg border border-yumara-600 bg-yumara-50 text-yumara-700';
+                    percentBtn.className = 'py-1.5 text-xs font-bold rounded-lg border border-cream-300 bg-cream-100 text-forest-800';
+                }
+            }
+
+            async updateAdminFees() {
+                this.sessionData.deliveryFee = parseFloat(document.getElementById('admin-input-delivery').value) || 0;
+                this.sessionData.serviceFee = parseFloat(document.getElementById('admin-input-tax').value) || 0;
+                this.sessionData.splitMethod = document.getElementById('admin-select-split').value;
+                this.saveSessionToLocalArchive(true);
+                await this.saveSessionDataToFirestore();
+                this.renderOrdersStream();
+            }
+
+            async toggleLockSession() {
+                this.sessionData.isLocked = !this.sessionData.isLocked;
+                this.saveSessionToLocalArchive(true);
+                await this.saveSessionDataToFirestore();
+                this.showToast(this.sessionData.isLocked ? 'Orders locked' : 'Orders unlocked', 'info');
+            }
+
+            showCreateSessionModal() {
+                document.getElementById('modal-create-session').classList.remove('hidden');
+                lucide.createIcons();
+            }
+
+            openAdminMenuModal() {
+                const text = (this.sessionData.presets || []).map(p => `${p.name} - ${p.price}`).join('\n');
+                document.getElementById('quick-preset-paste').value = text;
+                document.getElementById('modal-admin-menu').classList.remove('hidden');
+            }
+
+            async parseAndAddPresets() {
+                const rawText = document.getElementById('quick-preset-paste').value;
+                const lines = rawText.split('\n');
+                const newPresets = [];
+
+                lines.forEach(line => {
+                    const parts = line.split('-');
+                    if (parts.length >= 2) {
+                        const priceStr = parts.pop().trim();
+                        const nameStr = parts.join('-').trim();
+                        const price = parseFloat(priceStr);
+
+                        if (nameStr && !isNaN(price)) {
+                            newPresets.push({
+                                id: 'p_' + Math.random().toString(36).substring(2, 6),
+                                name: nameStr,
+                                price: price
+                            });
+                        }
+                    }
+                });
+
+                this.sessionData.presets = newPresets;
+                this.saveSessionToLocalArchive(true);
+                await this.saveSessionDataToFirestore();
+                this.closeModal('modal-admin-menu');
+                this.showToast('Presets saved!', 'success');
+            }
+
+            async clearPresets() {
+                this.sessionData.presets = [];
+                document.getElementById('quick-preset-paste').value = '';
+                this.saveSessionToLocalArchive(true);
+                await this.saveSessionDataToFirestore();
+                this.closeModal('modal-admin-menu');
+            }
+
+            openHistoryModal() {
+                document.getElementById('modal-history').classList.remove('hidden');
+                this.renderHistoryList();
+            }
+
+            renderHistoryList() {
+                const container = document.getElementById('history-sessions-list');
+                let history = [];
+                try {
+                    history = JSON.parse(localStorage.getItem('food_sessions_archive') || '[]');
+                } catch (e) {}
+
+                if (history.length === 0) {
+                    container.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">No past sessions found in history.</p>`;
+                    return;
+                }
+
+                container.innerHTML = history.map(item => {
+                    const code = item.sessionCode || item.id;
+                    const parts = item.participants || [];
+                    const totalSub = parts.reduce((s, p) => s + (p.items || []).reduce((iS, i) => iS + (i.price * i.qty), 0), 0);
+                    const grandTotal = totalSub + (item.deliveryFee || 0) + (item.serviceFee || 0);
+
+                    return `
+                        <div class="flex items-center justify-between p-3.5 bg-cream-50 hover:bg-cream-100 rounded-xl border border-cream-300">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-sm text-forest-800">${this.escapeHtml(item.restaurantName)}</h4>
+                                    <span class="code-font text-[11px] font-bold px-1.5 py-0.5 rounded bg-yumara-100 text-yumara-800 border border-yumara-200">${code}</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5">${new Date(item.createdAt).toLocaleDateString('en-GB')} • Organizer: ${this.escapeHtml(item.adminName)}</p>
+                                <p class="text-[11px] font-bold text-yumara-700 mt-0.5">${grandTotal.toFixed(2)} EGP (${parts.length} Participants)</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="app.loadHistoricalSession('${code}')" class="px-3 py-1.5 bg-yumara-600 hover:bg-yumara-700 text-white text-xs font-bold rounded-lg shadow-sm">
+                                    Open
+                                </button>
+                                <button onclick="app.promptDeleteHistoricalSession('${code}')" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors" title="Delete Session">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                lucide.createIcons();
+            }
+
+            promptDeleteHistoricalSession(code) {
+                this.showConfirmDialog(`Delete Session ${code}?`, `This will remove the session from your history archive.`, async () => {
+                    let history = [];
+                    try {
+                        history = JSON.parse(localStorage.getItem('food_sessions_archive') || '[]');
+                    } catch (e) {}
+
+                    history = history.filter(item => (item.sessionCode || item.id) !== code);
+                    localStorage.setItem('food_sessions_archive', JSON.stringify(history));
+                    localStorage.removeItem(`food_session_${code}`);
+
+                    this.showToast('Session deleted from history', 'info');
+                    this.renderHistoryList();
+                });
+            }
+
+            promptClearAllHistory() {
+                this.showConfirmDialog('Clear All History?', 'Are you sure you want to clear ALL past session history? This cannot be undone.', async () => {
+                    let history = [];
+                    try {
+                        history = JSON.parse(localStorage.getItem('food_sessions_archive') || '[]');
+                    } catch (e) {}
+
+                    history.forEach(item => {
+                        localStorage.removeItem(`food_session_${item.sessionCode || item.id}`);
+                    });
+
+                    localStorage.removeItem('food_sessions_archive');
+                    this.showToast('History cleared', 'info');
+                    this.renderHistoryList();
+                });
+            }
+
+            loadHistoricalSession(code) {
+                this.closeModal('modal-history');
+                window.location.hash = `#session=${code}`;
+            }
+
+            showConfirmDialog(title, message, onConfirm) {
+                const modal = document.getElementById('modal-custom-confirm');
+                document.getElementById('custom-confirm-title').innerText = title;
+                document.getElementById('custom-confirm-message').innerText = message;
+
+                const acceptBtn = document.getElementById('custom-confirm-accept-btn');
+                const cancelBtn = document.getElementById('custom-confirm-cancel-btn');
+
+                const cleanup = () => {
+                    modal.classList.add('hidden');
+                    acceptBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                };
+
+                acceptBtn.onclick = () => {
+                    cleanup();
+                    if (typeof onConfirm === 'function') onConfirm();
+                };
+
+                cancelBtn.onclick = cleanup;
+                modal.classList.remove('hidden');
+                lucide.createIcons();
+            }
+
+            fallbackCopyText(text) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (err) {}
+                document.body.removeChild(textArea);
+            }
+
+            openMenuImageModal() {
+                if (this.sessionData.menuImage) {
+                    document.getElementById('modal-menu-img-element').src = this.sessionData.menuImage;
+                    document.getElementById('modal-menu-image').classList.remove('hidden');
+                }
+            }
+
+            closeModal(id) {
+                document.getElementById(id).classList.add('hidden');
+            }
+
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                
+                const toast = document.createElement('div');
+                const bg = type === 'success' ? 'bg-yumara-700' : type === 'error' ? 'bg-rose-800' : 'bg-forest-800';
+
+                toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl shadow-lg font-medium text-xs text-white transition-all transform translate-y-2 opacity-0 ${bg}`;
+                toast.innerHTML = `<span>${this.escapeHtml(message)}</span>`;
+
+                container.appendChild(toast);
+                setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => toast.remove(), 250);
+                }, 3000);
+            }
+
+            escapeHtml(str) {
+                if (!str) return '';
+                return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+        }
+
+        window.app = new FoodOrderApp();
+    </script>
+</body>
+</html>
